@@ -49,8 +49,10 @@
                         <a class="minus-button" href="{{ url_for('decrementer_palettes', commande_id=cmd.id) }}">-</a> 
                         <a class="modify-button" href="{{ url_for('modifier_commande', commande_id=cmd.id) }}">Modifier</a> 
                         <a href="{{ url_for('supprimer_commande', commande_id=cmd.id) }}" class="supprimer" data-nom="{{ cmd.nom }}" data-palettes="{{ cmd.nombre_palettes }}" data-palettes-realisees="{{ cmd.nombre_palettes_realisees }}">Supprimer</a>
-                        || Colis : {{ cmd.nombre_colis }}
-                        <a class="valider-colis-button" href="{{ url_for('valide_colis', commande_id=cmd.id) }}">V</a>
+                        {{ cmd.nombre_colis }}
+                        {% if cmd.nombre_colis != "" %}
+                            <a class="valider-colis-button" href="{{ url_for('valide_colis', commande_id=cmd.id) }}">V</a>
+                        {% endif %}
                     </li>
                 {% endfor %}
             </ul>

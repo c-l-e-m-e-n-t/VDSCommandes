@@ -22,7 +22,10 @@ class Commande:
         self.nom = nom
         self.calibre = calibre
         self.nombre_palettes = nombre_palettes
-        self.nombre_colis = nombre_colis
+        if nombre_colis > 0 :
+            self.nombre_colis = "|| Colis : " + str(nombre_colis)
+        else :
+            self.nombre_colis = ""
         self.nombre_palettes_realisees = nombre_palettes_realisees
         self.valider_colis = False
 
@@ -151,8 +154,9 @@ def valide_colis(commande_id):
         for cmd in commandes:
             if cmd.id == commande_id :
                 cmd.valider_colis = True
-                if str(cmd.nombre_colis)[-1] != ")" :
-                    cmd.nombre_colis = str(cmd.nombre_colis) + " (Terminé)"
+                if cmd.nombre_colis != "" :
+                    if str(cmd.nombre_colis)[-1] != ")" :
+                        cmd.nombre_colis = str(cmd.nombre_colis) + " (Terminé)"
                 break
 
     # Émettre la mise à jour des commandes à tous les clients via SocketIO
