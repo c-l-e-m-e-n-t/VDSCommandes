@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Modifier une commande</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="{{ url_for('accueil') }}">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+            </a>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('maj_commandes') }}">Gestion des commandes</a></li>
+                <li><a href="{{ url_for('liste_commandes') }}">Liste des commandes</a></li>
+                <li><a href="{{ url_for('ajouter_commande') }}">Ajouter une commande</a></li>
+            </ul>
+        </nav>
+    </header>
+    <h1>Modifier une commande</h1>
+    <form action="{{ url_for('modifier_commande', commande_id=commande.id) }}" method="POST">
+        <label for="nom">Nom:</label>
+        <input type="text" id="nom" name="nom" value="{{ commande.nom }}" required><br><br>
+        <label for="calibre">Calibre:</label>
+        <select id="calibre" name="calibre">
+            {% for calibre in calibres.values() %}
+                <option value="{{ calibre.nom }}" {% if calibre.nom == commande.calibre.nom %}selected{% endif %}>{{ calibre.description }}</option>
+            {% endfor %}
+        </select><br><br>
+        <label for="nombre_palettes">Nombre de palettes:</label>
+        <input type="number" id="nombre_palettes" name="nombre_palettes" value="{{ commande.nombre_palettes }}" required><br><br>
+        <button type="submit">Modifier</button>
+    </form>
+    <a href="{{ url_for('maj_commandes') }}">Retour à la liste des commandes</a>
+    <footer>
+        <div class="footer-left">Val de Serigny</div>
+        <div class="footer-right">Clément Cognard</div>
+    </footer>
+</body>
+</html>

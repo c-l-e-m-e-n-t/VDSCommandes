@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <header>
+        <div class="logo">
+            <a href="{{ url_for('accueil') }}">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+            </a>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('maj_commandes') }}">Gestion des commandes</a></li>
+                <li><a href="{{ url_for('liste_commandes') }}">Liste des commandes</a></li>
+                <li><a href="{{ url_for('ajouter_commande') }}">Ajouter une commande</a></li>
+            </ul>
+        </nav>
+    </header>
+    <title>Liste des Commandes</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
+    <script type="text/javascript">
+        const socket = io.connect(window.location.origin);
+
+        // Écouteur pour la mise à jour de la commande
+        socket.on('mise_a_jour_commande', function(data) {
+            // Mettez à jour l'affichage avec les nouvelles données de commande
+            // Utilisez JavaScript pour mettre à jour les éléments HTML appropriés
+            // par exemple, vous pouvez actualiser la liste des commandes
+            updateCommandList(data.commandes);
+        });
+
+        function updateCommandList(commandes) {
+            // Obtenez l'élément HTML de la liste des commandes
+            const commandList = document.getElementById('command-list');
+            commandList.innerHTML = ''; // Effacez le contenu actuel de la liste
+
+            // Parcourez les commandes et ajoutez-les à la liste
+            for (const calibre in commandes) {
+                commandList.innerHTML += `<h2>Calibre: ${calibre}</h2><ul>`;
+                for (const cmd of commandes[calibre]) {
+                    commandList.innerHTML += `<li>${cmd.nom} - ${cmd.nombre_palettes_realisees}/${cmd.nombre_palettes}</li>`;
+                }
+                commandList.innerHTML += '</ul>';
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Liste des commandes par calibre</h1>
+    <div id="command-list">
+        {% for calibre, commandes in commandes_par_calibre.items() %}
+            <h2>Calibre: {{ calibre }}</h2>
+            <ul>
+                {% for cmd in commandes %}
+                    <li><span class="status-dot {{ cmd.status_class }}"></span>
+                        {{ cmd.nom }} - {{ cmd.nombre_palettes_realisees }}/{{ cmd.nombre_palettes }}</li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    </div>
+    <a href="{{ url_for('maj_commandes') }}">Retour à la mise à jour des commandes</a>
+    <footer>
+        <div class="footer-left">Val de Serigny</div>
+        <div class="footer-right">Clément Cognard</div>
+    </footer>
+</body>
+</html>
