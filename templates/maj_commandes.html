@@ -1,44 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Mise à jour des Commandes</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
-    <script type="text/javascript">
-        const socket = io.connect(window.location.origin);
-
-        // Écouteur pour la mise à jour de la commande
-        socket.on('mise_a_jour_commande', function(data) {
-            updateCommandList(data.commandes);
-        });
-
-        function updateCommandList(commandes) {
-            // Obtenez l'élément HTML de la liste des commandes
-            const commandList = document.getElementById('command-list');
-            commandList.innerHTML = ''; // Effacez le contenu actuel de la liste
-
-            // Parcourez les commandes et ajoutez-les à la liste
-            for (const calibre in commandes) {
-                commandList.innerHTML += `<h2>Calibre: ${calibre}</h2><ul>`;
-                for (const cmd of commandes[calibre]) {
-                    commandList.innerHTML += `<li>${cmd.id} - ${cmd.nombre_palettes_realisees}/${cmd.nombre_palettes}
-                    <a href="${getUrlForIncrementer(cmd.id)}">+</a> |
-                    <a href="${getUrlForDecrementer(cmd.id)}">-</a></li>`;
-                }
-                commandList.innerHTML += '</ul>';
-            }
-        }
-
-        function getUrlForIncrementer(Id) {
-            return "{{ url_for('incrementer_palettes', commande_id='" + Id + "') }}";
-        }
-
-        function getUrlForDecrementer(Id) {
-            return "{{ url_for('decrementer_palettes', commande_id='" + Id + "') }}";
-        }
-    </script>
-</head>
-<body>
     <header>
         <div class="logo">
             <a href="{{ url_for('accueil') }}">
@@ -53,71 +15,47 @@
             </ul>
         </nav>
     </header>
-    <h1>Liste des commandes par calibre</h1>
-    {% for calibre, commandes in commandes_par_calibre.items() %}
-        <h2>Calibre: {{ calibre }}</h2>
-        <ul>
-            {% for cmd in commandes %}
-                <li>
-                    <span class="status-dot {{ cmd.status_class }}"></span>
-                    {{ cmd.nom }} - 
-                    {{ cmd.nombre_palettes_realisees }}/{{ cmd.nombre_palettes }} 
-                    <a class="plus-button" href="{{ url_for('incrementer_palettes', commande_id=cmd.id) }}">+</a> 
-                    <a class="minus-button" href="{{ url_for('decrementer_palettes', commande_id=cmd.id) }}">-</a> 
-                    <a class="modify-button" href="{{ url_for('modifier_commande', commande_id=cmd.id) }}">Modifier</a> 
-                    <a href="{{ url_for('supprimer_commande', commande_id=cmd.id) }}" class="supprimer" data-nom="{{ cmd.nom }}" data-palettes="{{ cmd.nombre_palettes }}" data-palettes-realisees="{{ cmd.nombre_palettes_realisees }}">Supprimer</a>
-                </li>
-            {% endfor %}
-        </ul>
-    {% endfor %}
-    <a href="{{ url_for('ajouter_commande') }}">Ajouter une nouvelle commande</a>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const supprimerLinks = document.querySelectorAll('.supprimer');
-            
-            supprimerLinks.forEach(link => {
-                link.addEventListener('click', function(event) {
-                    event.preventDefault();
-                    
-                    const isCommandeComplete = link.classList.contains('commande-complete');
-
-                    if (isCommandeComplete) {
-                        window.location.href = link.getAttribute('href');
-                        return;
-                    }
-                    
-                    const nom = link.getAttribute('data-nom');
-                    const modal = document.createElement('div');
-                    modal.classList.add('confirmation-modal');
-                    modal.innerHTML = `
-                        <div class="modal-content">
-                            <p>Êtes-vous sûr de vouloir supprimer la commande "${nom}" ?</p>
-                            <button class="modal-confirm">Confirmer</button>
-                            <button class="modal-cancel">Annuler</button>
-                        </div>
-                    `;
-
-                    document.body.appendChild(modal);
-
-                    const modalConfirm = modal.querySelector('.modal-confirm');
-                    const modalCancel = modal.querySelector('.modal-cancel');
-
-                    modalConfirm.addEventListener('click', function() {
-                        window.location.href = link.getAttribute('href');
-                        document.body.removeChild(modal);
-                    });
-
-                    modalCancel.addEventListener('click', function() {
-                        document.body.removeChild(modal);
-                    });
-                });
-            });
+    <title>Mise à jour des Commandes</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
+    <script type="text/javascript">
+        const socket = io.connect(window.location.origin);
+        // Écouteur pour la mise à jour de la commande
+        socket.on('mise_a_jour_commande', function(data) {
+            window.location.reload(1);
         });
+
+        function getUrlForIncrementer(Id) {
+            return "{{ url_for('incrementer_palettes', commande_id='" + Id + "') }}";
+        }
+
+        function getUrlForDecrementer(Id) {
+            return "{{ url_for('decrementer_palettes', commande_id='" + Id + "') }}";
+        }
     </script>
-    <footer>
-        <div class="footer-left">Val de Serigny</div>
-        <div class="footer-right">Clément Cognard</div>
-    </footer>
+</head>
+<body>
+    <main>
+        <h1>Liste des commandes par calibre</h1>
+        {% for calibre, commandes in commandes_par_calibre.items() %}
+            <h2>Calibre: {{ calibre }}</h2>
+            <ul>
+                {% for cmd in commandes %}
+                    <li>
+                        <span class="status-dot {{ cmd.status_class }}"></span>
+                        {{ cmd.nom }} - 
+                        {{ cmd.nombre_palettes_realisees }}/{{ cmd.nombre_palettes }} 
+                        <a class="plus-button" href="{{ url_for('incrementer_palettes', commande_id=cmd.id) }}">+</a> 
+                        <a class="minus-button" href="{{ url_for('decrementer_palettes', commande_id=cmd.id) }}">-</a> 
+                        <a class="modify-button" href="{{ url_for('modifier_commande', commande_id=cmd.id) }}">Modifier</a> 
+                        <a href="{{ url_for('supprimer_commande', commande_id=cmd.id) }}" class="supprimer" data-nom="{{ cmd.nom }}" data-palettes="{{ cmd.nombre_palettes }}" data-palettes-realisees="{{ cmd.nombre_palettes_realisees }}">Supprimer</a>
+                        || Colis : {{ cmd.nombre_colis }}
+                        <a class="valider-colis-button" href="{{ url_for('valide_colis', commande_id=cmd.id) }}">V</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+        <a href="{{ url_for('ajouter_commande') }}">Ajouter une nouvelle commande</a>
+    </main>
 </body>
 </html>

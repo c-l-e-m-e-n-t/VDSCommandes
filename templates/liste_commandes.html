@@ -23,26 +23,8 @@
 
         // Écouteur pour la mise à jour de la commande
         socket.on('mise_a_jour_commande', function(data) {
-            // Mettez à jour l'affichage avec les nouvelles données de commande
-            // Utilisez JavaScript pour mettre à jour les éléments HTML appropriés
-            // par exemple, vous pouvez actualiser la liste des commandes
-            updateCommandList(data.commandes);
+            window.location.reload(1);
         });
-
-        function updateCommandList(commandes) {
-            // Obtenez l'élément HTML de la liste des commandes
-            const commandList = document.getElementById('command-list');
-            commandList.innerHTML = ''; // Effacez le contenu actuel de la liste
-
-            // Parcourez les commandes et ajoutez-les à la liste
-            for (const calibre in commandes) {
-                commandList.innerHTML += `<h2>Calibre: ${calibre}</h2><ul>`;
-                for (const cmd of commandes[calibre]) {
-                    commandList.innerHTML += `<li>${cmd.nom} - ${cmd.nombre_palettes_realisees}/${cmd.nombre_palettes}</li>`;
-                }
-                commandList.innerHTML += '</ul>';
-            }
-        }
     </script>
 </head>
 <body>
@@ -53,15 +35,16 @@
             <ul>
                 {% for cmd in commandes %}
                     <li><span class="status-dot {{ cmd.status_class }}"></span>
-                        {{ cmd.nom }} - {{ cmd.nombre_palettes_realisees }}/{{ cmd.nombre_palettes }}</li>
+                        {{ cmd.nom }} - {{ cmd.nombre_palettes_realisees }}/{{ cmd.nombre_palettes }}
+                        {% if cmd.nombre_colis != 0 or cmd.valider_colis == False %}
+                            + {{ cmd.nombre_colis }} colis
+                        {% endif %}
+                    </li>
+
                 {% endfor %}
             </ul>
         {% endfor %}
     </div>
     <a href="{{ url_for('maj_commandes') }}">Retour à la mise à jour des commandes</a>
-    <footer>
-        <div class="footer-left">Val de Serigny</div>
-        <div class="footer-right">Clément Cognard</div>
-    </footer>
 </body>
 </html>

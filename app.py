@@ -5,6 +5,8 @@ import uuid
 app = Flask(__name__)
 socketio = SocketIO(app)
 
+checkbox_states = {}
+
 def generate_unique_id():
     return str(uuid.uuid4())
 
@@ -15,19 +17,24 @@ class Calibre:
         self.description = description
 
 class Commande:
-    def __init__(self, id, nom, calibre, nombre_palettes, nombre_palettes_realisees=0):
+    def __init__(self, id, nom, calibre, nombre_palettes, nombre_colis, nombre_palettes_realisees=0):
         self.id = id
         self.nom = nom
         self.calibre = calibre
         self.nombre_palettes = nombre_palettes
+        self.nombre_colis = nombre_colis
         self.nombre_palettes_realisees = nombre_palettes_realisees
+        self.valider_colis = False
 
     def to_dict(self):
         return {
+            'id': self.id,
             'nom': self.nom,
             'calibre': self.calibre.__dict__,
             'nombre_palettes': self.nombre_palettes,
-            'nombre_palettes_realisees': self.nombre_palettes_realisees
+            'nombre_colis': self.nombre_colis,
+            'nombre_palettes_realisees': self.nombre_palettes_realisees,
+            'valider_colis': self.valider_colis
         }
     
     @property
@@ -57,16 +64,23 @@ commandes_par_calibre = {
     "18": [],
 }
 
+def get_completed_state(self):
+    cookie_name = f'completed_{self.id}'
+    return request.cookies.get(cookie_name, 'false') == 'true'
+
+
 @app.route('/')
 def accueil():
     return render_template('accueil.html')
 
 @app.route('/maj-commandes', methods=['GET', 'POST'])
 def maj_commandes():
+    global checkbox_states
     if request.method == 'POST':
         nom = request.form['nom']
         calibre = calibres[request.form['calibre']]
         nombre_palettes = int(request.form['nombre_palettes'])
+        
         
         nouvelle_commande = Commande(nom, calibre, nombre_palettes)
         commandes_par_calibre[calibre.nom].append(nouvelle_commande)
@@ -74,7 +88,7 @@ def maj_commandes():
         # Émettre la mise à jour des commandes à tous les clients via SocketIO
         commandes_dict = {calibre: [cmd.to_dict() for cmd in commandes] for calibre, commandes in commandes_par_calibre.items()}
         socketio.emit('mise_a_jour_commande', {'commandes': commandes_dict})
-
+        
         return redirect(url_for('maj_commandes'))
 
     return render_template('maj_commandes.html', calibres=calibres, commandes_par_calibre=commandes_par_calibre)
@@ -85,9 +99,10 @@ def ajouter_commande():
         nom = request.form['nom']
         calibre = calibres[request.form['calibre']]
         nombre_palettes = int(request.form['nombre_palettes'])
+        nombre_colis = int(request.form['nombre_colis'])
         id = generate_unique_id()
         
-        nouvelle_commande = Commande(id, nom, calibre, nombre_palettes)
+        nouvelle_commande = Commande(id, nom, calibre, nombre_palettes, nombre_colis)
         commandes_par_calibre[calibre.nom].append(nouvelle_commande)
 
         # Émettre la mise à jour des commandes à tous les clients via SocketIO
@@ -129,6 +144,24 @@ def decrementer_palettes(commande_id):
     socketio.emit('mise_a_jour_commande', {'commandes': commandes_dict})
 
     return redirect(url_for('maj_commandes'))
+
+@app.route('/valide-colis/<string:commande_id>')
+def valide_colis(commande_id):
+    for calibre, commandes in commandes_par_calibre.items():
+        for cmd in commandes:
+            if cmd.id == commande_id :
+                cmd.valider_colis = True
+                if str(cmd.nombre_colis)[-1] != ")" :
+                    cmd.nombre_colis = str(cmd.nombre_colis) + " (Terminé)"
+                break
+
+    # Émettre la mise à jour des commandes à tous les clients via SocketIO
+    commandes_dict = {calibre: [cmd.to_dict() for cmd in commandes] for calibre, commandes in commandes_par_calibre.items()}
+    socketio.emit('mise_a_jour_commande', {'commandes': commandes_dict})
+
+    return redirect(url_for('maj_commandes'))
+
+
 
 @app.route('/modifier-commande/<string:commande_id>', methods=['GET', 'POST'])
 def modifier_commande(commande_id):

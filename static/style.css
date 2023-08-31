@@ -121,7 +121,8 @@ nav ul li a {
 
 /* Styling pour les boutons "+" et "-" */
 .plus-button,
-.minus-button {
+.minus-button,
+.valider-colis-button {
     background-color: #094609; /* Couleur verte */
     color: white;
     border: none;
@@ -138,12 +139,14 @@ nav ul li a {
 }
 
 .plus-button:hover,
-.minus-button:hover {
+.minus-button:hover,
+.valider-colis-button:hover {
     background-color: #052b05; /* Couleur verte plus foncée au survol */
 }
 
 .plus-button:focus,
-.minus-button:focus {
+.minus-button:focus,
+.valider-colis-button:focus {
     outline: none;
 }
 
@@ -172,7 +175,6 @@ nav ul li a {
     outline: none;
 }
 
-
-
-
-
+.completed {
+    text-decoration: line-through;
+}
