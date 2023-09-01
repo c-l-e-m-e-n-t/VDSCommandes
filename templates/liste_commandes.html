@@ -53,28 +53,31 @@
         });
 
         function updateCommandList(commandes) {
-            // Obtenez l'élément HTML de la liste des commandes
-            const commandList = document.getElementById('command-list');
-            commandList.innerHTML = ''; // Effacez le contenu actuel de la liste
+        // Obtenez l'élément HTML de la liste des commandes
+        const commandList = document.getElementById('command-list');
+        commandList.innerHTML = ''; // Effacez le contenu actuel de la liste
 
-            for (const calibre in commandes) {
-                const calibreHeader = `<h2>Calibre: ${calibre}</h2>`;
-                const commandItems = commandes[calibre].map(cmd => {
-                    const statusClass = `status-dot ${cmd.status_class}`;
-                    const colisText = cmd.nombre_colis !== 0 && cmd.nombre_colis !== "" ? `+ ${cmd.nombre_colis} colis` : '';
-                    return `
-                        <li>
-                            
-                            <span class="${statusClass}"></span>
-                            ${cmd.nom} - ${cmd.nombre_palettes_realisees}/${cmd.nombre_palettes} ${colisText}
-                        </li>`;
-                });
+        // Obtenez une liste triée des calibres
+        const sortedCalibres = Object.keys(commandes).sort();
 
-                // Utilisez join() pour concaténer les éléments du tableau en une seule chaîne
-                const commandListHtml = calibreHeader + '<ul>' + commandItems.join('') + '</ul>';
-                commandList.innerHTML += commandListHtml;
-            }
+        for (const calibre of sortedCalibres) {
+            const calibreHeader = `<h2>Calibre: ${calibre}</h2>`;
+            const commandItems = commandes[calibre].map(cmd => {
+                const statusClass = `status-dot ${cmd.status_class}`;
+                const colisText = cmd.nombre_colis !== 0 && cmd.nombre_colis !== "" ? `+ ${cmd.nombre_colis} colis` : '';
+                return `
+                    <li>
+                        <span class="${statusClass}"></span>
+                        ${cmd.nom} - ${cmd.nombre_palettes_realisees}/${cmd.nombre_palettes} ${colisText}
+                    </li>`;
+            });
+
+            // Utilisez join() pour concaténer les éléments du tableau en une seule chaîne
+            const commandListHtml = calibreHeader + '<ul>' + commandItems.join('') + '</ul>';
+            commandList.innerHTML += commandListHtml;
         }
+    }
+
 
     </script>
     
