@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_socketio import SocketIO
 import uuid
+import json
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -9,6 +10,30 @@ checkbox_states = {}
 
 def generate_unique_id():
     return str(uuid.uuid4())
+
+def sauvegarder_commandes():
+    #enregistrer dans un json
+    commandes_json = {calibre: [cmd.to_dict() for cmd in commandes] for calibre, commandes in commandes_par_calibre.items()}
+    with open('commandes.json', 'w') as file:
+        json.dump(commandes_json, file)
+
+def get_completed_state(self):
+    cookie_name = f'completed_{self.id}'
+    return request.cookies.get(cookie_name, 'false') == 'true'
+
+def charger_commandes():
+    try:
+        with open('commandes.json', 'r') as file:
+            commandes_json = json.load(file)
+            commandes_par_calibre = {}
+            for calibre, commandes in commandes_json.items():
+                commandes_par_calibre[calibre] = []
+                for cmd in commandes:
+                    commandes_par_calibre[calibre].append(Commande(cmd['id'], cmd['nom'], calibres[cmd['calibre']['nom']], cmd['nombre_palettes'], cmd['nombre_colis'], cmd['nombre_palettes_realisees']))
+            return commandes_par_calibre
+    except FileNotFoundError:
+        # Si le fichier n'existe pas (première exécution), retournez un dictionnaire vide
+        return {}
 
 # Définition des classes Calibre et Commande
 class Calibre:
@@ -22,12 +47,11 @@ class Commande:
         self.nom = nom
         self.calibre = calibre
         self.nombre_palettes = nombre_palettes
-        if nombre_colis > 0 :
-            self.nombre_colis = "|| Colis : " + str(nombre_colis)
-        else :
-            self.nombre_colis = ""
+        self.nombre_colis = ""
+        if type(nombre_colis) == int:
+            if nombre_colis > 0 :
+                self.nombre_colis = "|| Colis : " + str(nombre_colis)
         self.nombre_palettes_realisees = nombre_palettes_realisees
-        self.valider_colis = False
 
     def to_dict(self):
         return {
@@ -37,8 +61,8 @@ class Commande:
             'nombre_palettes': self.nombre_palettes,
             'nombre_colis': self.nombre_colis,
             'nombre_palettes_realisees': self.nombre_palettes_realisees,
-            'valider_colis': self.valider_colis
         }
+    
     
     @property
     def status_class(self):
@@ -58,20 +82,9 @@ calibres = {
     "18": Calibre("18", "Calibre 18"),
 }
 
-commandes_par_calibre = {
-    "11": [],
-    "12Q": [],
-    "12L": [],
-    "9": [],
-    "15": [],
-    "18": [],
-}
-
-def get_completed_state(self):
-    cookie_name = f'completed_{self.id}'
-    return request.cookies.get(cookie_name, 'false') == 'true'
-
-
+commandes_par_calibre = {}
+commandes_par_calibre = charger_commandes()
+    
 @app.route('/')
 def accueil():
     return render_template('accueil.html')
@@ -91,7 +104,8 @@ def maj_commandes():
         # Émettre la mise à jour des commandes à tous les clients via SocketIO
         commandes_dict = {calibre: [cmd.to_dict() for cmd in commandes] for calibre, commandes in commandes_par_calibre.items()}
         socketio.emit('mise_a_jour_commande', {'commandes': commandes_dict})
-        
+        sauvegarder_commandes()
+
         return redirect(url_for('maj_commandes'))
 
     return render_template('maj_commandes.html', calibres=calibres, commandes_par_calibre=commandes_par_calibre)
@@ -111,6 +125,7 @@ def ajouter_commande():
         # Émettre la mise à jour des commandes à tous les clients via SocketIO
         commandes_dict = {calibre: [cmd.to_dict() for cmd in commandes] for calibre, commandes in commandes_par_calibre.items()}
         socketio.emit('mise_a_jour_commande', {'commandes': commandes_dict})
+        sauvegarder_commandes()
 
         return redirect(url_for('maj_commandes'))
 
@@ -131,6 +146,7 @@ def incrementer_palettes(commande_id):
     # Émettre la mise à jour des commandes à tous les clients via SocketIO
     commandes_dict = {calibre: [cmd.to_dict() for cmd in commandes] for calibre, commandes in commandes_par_calibre.items()}
     socketio.emit('mise_a_jour_commande', {'commandes': commandes_dict})
+    sauvegarder_commandes()
 
     return redirect(url_for('maj_commandes'))
 
@@ -145,6 +161,7 @@ def decrementer_palettes(commande_id):
     # Émettre la mise à jour des commandes à tous les clients via SocketIO
     commandes_dict = {calibre: [cmd.to_dict() for cmd in commandes] for calibre, commandes in commandes_par_calibre.items()}
     socketio.emit('mise_a_jour_commande', {'commandes': commandes_dict})
+    sauvegarder_commandes()
 
     return redirect(url_for('maj_commandes'))
 
@@ -153,7 +170,6 @@ def valide_colis(commande_id):
     for calibre, commandes in commandes_par_calibre.items():
         for cmd in commandes:
             if cmd.id == commande_id :
-                cmd.valider_colis = True
                 if cmd.nombre_colis != "" :
                     if str(cmd.nombre_colis)[-1] != ")" :
                         cmd.nombre_colis = str(cmd.nombre_colis) + " (Terminé)"
@@ -162,6 +178,7 @@ def valide_colis(commande_id):
     # Émettre la mise à jour des commandes à tous les clients via SocketIO
     commandes_dict = {calibre: [cmd.to_dict() for cmd in commandes] for calibre, commandes in commandes_par_calibre.items()}
     socketio.emit('mise_a_jour_commande', {'commandes': commandes_dict})
+    sauvegarder_commandes()
 
     return redirect(url_for('maj_commandes'))
 
@@ -180,6 +197,7 @@ def modifier_commande(commande_id):
                     # Émettre la mise à jour des commandes à tous les clients via SocketIO
                     commandes_dict = {calibre: [cmd.to_dict() for cmd in commandes] for calibre, commandes in commandes_par_calibre.items()}
                     socketio.emit('mise_a_jour_commande', {'commandes': commandes_dict})
+                    sauvegarder_commandes()
 
                     return redirect(url_for('maj_commandes'))
 
@@ -197,7 +215,7 @@ def supprimer_commande(commande_id):
                 commandes_dict = {calibre: [cmd.to_dict() for cmd in commandes] for calibre, commandes in commandes_par_calibre.items()}
                 socketio.emit('mise_a_jour_commande', {'commandes': commandes_dict})
                 break
-
+    sauvegarder_commandes()
     return redirect(url_for('maj_commandes'))
 
 if __name__ == '__main__':
