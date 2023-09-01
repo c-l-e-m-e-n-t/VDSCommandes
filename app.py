@@ -7,6 +7,7 @@ app = Flask(__name__)
 socketio = SocketIO(app)
 
 checkbox_states = {}
+volume = 0
 
 def generate_unique_id():
     return str(uuid.uuid4())
@@ -61,6 +62,7 @@ class Commande:
             'nombre_palettes': self.nombre_palettes,
             'nombre_colis': self.nombre_colis,
             'nombre_palettes_realisees': self.nombre_palettes_realisees,
+            'status_class': self.status_class,
         }
     
     
@@ -87,10 +89,12 @@ commandes_par_calibre = charger_commandes()
     
 @app.route('/')
 def accueil():
+    volume = 0
     return render_template('accueil.html')
 
 @app.route('/maj-commandes', methods=['GET', 'POST'])
 def maj_commandes():
+    volume = 0
     global checkbox_states
     if request.method == 'POST':
         nom = request.form['nom']
@@ -112,6 +116,7 @@ def maj_commandes():
 
 @app.route('/ajouter-commande', methods=['GET', 'POST'])
 def ajouter_commande():
+    volume = 0
     if request.method == 'POST':
         nom = request.form['nom']
         calibre = calibres[request.form['calibre']]
@@ -133,14 +138,18 @@ def ajouter_commande():
 
 @app.route('/liste-commandes')
 def liste_commandes():
+    volume = 0
     return render_template('liste_commandes.html', commandes_par_calibre=commandes_par_calibre)
 
 @app.route('/incrementer-palettes/<string:commande_id>')
 def incrementer_palettes(commande_id):
+    volume = 0
     for calibre, commandes in commandes_par_calibre.items():
         for cmd in commandes:
             if cmd.id == commande_id:
                 cmd.nombre_palettes_realisees += 1
+                if cmd.nombre_palettes - cmd.nombre_palettes_realisees == 1:
+                    socketio.emit('volume_notification', {'volume': volume})
                 break
 
     # Émettre la mise à jour des commandes à tous les clients via SocketIO
@@ -152,6 +161,7 @@ def incrementer_palettes(commande_id):
 
 @app.route('/decrementer-palettes/<string:commande_id>')
 def decrementer_palettes(commande_id):
+    volume = 0
     for calibre, commandes in commandes_par_calibre.items():
         for cmd in commandes:
             if cmd.id == commande_id and cmd.nombre_palettes_realisees > 0:
@@ -167,6 +177,7 @@ def decrementer_palettes(commande_id):
 
 @app.route('/valide-colis/<string:commande_id>')
 def valide_colis(commande_id):
+    volume = 0
     for calibre, commandes in commandes_par_calibre.items():
         for cmd in commandes:
             if cmd.id == commande_id :
@@ -186,6 +197,7 @@ def valide_colis(commande_id):
 
 @app.route('/modifier-commande/<string:commande_id>', methods=['GET', 'POST'])
 def modifier_commande(commande_id):
+    volume = 0
     for calibre, commandes in commandes_par_calibre.items():
         for cmd in commandes:
             if cmd.id == commande_id:
@@ -207,6 +219,7 @@ def modifier_commande(commande_id):
 
 @app.route('/supprimer-commande/<string:commande_id>')
 def supprimer_commande(commande_id):
+    volume = 0
     for calibre, commandes in commandes_par_calibre.items():
         for cmd in commandes:
             if cmd.id == commande_id:

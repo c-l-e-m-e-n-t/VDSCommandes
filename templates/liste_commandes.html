@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="icon" href="../static/logo_top.png">
     <header>
         <div class="logo">
             <a href="{{ url_for('accueil') }}">
@@ -17,19 +18,10 @@
     </header>
     <title>Liste des Commandes</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="icon" href="../static/logo_top.png">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
-    <script type="text/javascript">
-        const socket = io.connect(window.location.origin);
-
-        // Écouteur pour la mise à jour de la commande
-        socket.on('mise_a_jour_commande', function(data) {
-            window.location.reload(1);
-        });
-    </script>
 </head>
 <body>
-    <h1>Liste des commandes par calibre</h1>
     <div id="command-list">
         {% for calibre, commandes in commandes_par_calibre.items() %}
             <h2>Calibre: {{ calibre }}</h2>
@@ -41,11 +33,50 @@
                             + {{ cmd.nombre_colis }} colis
                         {% endif %}
                     </li>
-
                 {% endfor %}
             </ul>
         {% endfor %}
     </div>
     <a href="{{ url_for('maj_commandes') }}">Retour à la mise à jour des commandes</a>
+
+    <script type="text/javascript">
+        const socket = io.connect(window.location.origin);
+        const commandListContainer = document.getElementById('command-list');
+    
+        socket.on('mise_a_jour_commande', function(data) {
+            updateCommandList(data.commandes);
+        });
+    
+        socket.on('volume_notification', function(data) {
+            const notificationSound = new Audio("{{ url_for('static', filename='notification.mp3') }}")
+            notificationSound.play();
+        });
+
+        function updateCommandList(commandes) {
+            // Obtenez l'élément HTML de la liste des commandes
+            const commandList = document.getElementById('command-list');
+            commandList.innerHTML = ''; // Effacez le contenu actuel de la liste
+
+            for (const calibre in commandes) {
+                const calibreHeader = `<h2>Calibre: ${calibre}</h2>`;
+                const commandItems = commandes[calibre].map(cmd => {
+                    const statusClass = `status-dot ${cmd.status_class}`;
+                    const colisText = cmd.nombre_colis !== 0 && cmd.nombre_colis !== "" ? `+ ${cmd.nombre_colis} colis` : '';
+                    return `
+                        <li>
+                            
+                            <span class="${statusClass}"></span>
+                            ${cmd.nom} - ${cmd.nombre_palettes_realisees}/${cmd.nombre_palettes} ${colisText}
+                        </li>`;
+                });
+
+                // Utilisez join() pour concaténer les éléments du tableau en une seule chaîne
+                const commandListHtml = calibreHeader + '<ul>' + commandItems.join('') + '</ul>';
+                commandList.innerHTML += commandListHtml;
+            }
+        }
+
+    </script>
+    
 </body>
 </html>
