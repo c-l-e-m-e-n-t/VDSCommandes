@@ -48,6 +48,7 @@
                         {{ cmd.nombre_palettes_realisees }}/{{ cmd.nombre_palettes }} 
                         <a class="plus-button" href="{{ url_for('incrementer_palettes', commande_id=cmd.id) }}">+</a> 
                         <a class="minus-button" href="{{ url_for('decrementer_palettes', commande_id=cmd.id) }}">-</a> 
+                        <a class="modify-button" href="{{ url_for('reset_commande', commande_id=cmd.id) }}">Reset</a> 
                         <a class="modify-button" href="{{ url_for('modifier_commande', commande_id=cmd.id) }}">Modifier</a> 
                         <a href="{{ url_for('supprimer_commande', commande_id=cmd.id) }}" class="supprimer" data-nom="{{ cmd.nom }}" data-palettes="{{ cmd.nombre_palettes }}" data-palettes-realisees="{{ cmd.nombre_palettes_realisees }}">Supprimer</a>
                         {{ cmd.nombre_colis }}
@@ -59,7 +60,7 @@
             </ul>
         {% endfor %}
         <a href="{{ url_for('ajouter_commande') }}">Ajouter une nouvelle commande</a>
-        <a class="modify-button" href="{{ url_for('reset') }}">Reset</a>
+        <a class="modify-button" href="{{ url_for('reset') }}">Reset bois</a>
     </main>
 </body>
 </html>

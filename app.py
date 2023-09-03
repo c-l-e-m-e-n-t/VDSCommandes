@@ -232,6 +232,22 @@ def modifier_commande(commande_id):
 
     return redirect(url_for('maj_commandes'))
 
+@app.route('/reset_commande/<string:commande_id>', methods=['GET', 'POST'])
+def reset_commande(commande_id):
+    volume = 0
+    for calibre, commandes in commandes_par_calibre.items():
+        for cmd in commandes:
+            if cmd.id == commande_id:
+                cmd.nombre_palettes_realisees = 0
+                cmd.nombre_colis = ""
+                # Émettre la mise à jour des commandes à tous les clients via SocketIO
+                commandes_dict = {calibre: [cmd.to_dict() for cmd in commandes] for calibre, commandes in commandes_par_calibre.items()}
+                socketio.emit('mise_a_jour_commande', {'commandes': commandes_dict})
+                sauvegarder_commandes()
+                break
+
+    return redirect(url_for('maj_commandes'))
+
 @app.route('/supprimer-commande/<string:commande_id>')
 def supprimer_commande(commande_id):
     volume = 0
