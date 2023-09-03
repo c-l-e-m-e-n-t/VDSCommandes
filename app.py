@@ -22,9 +22,9 @@ def get_completed_state(self):
     cookie_name = f'completed_{self.id}'
     return request.cookies.get(cookie_name, 'false') == 'true'
 
-def charger_commandes():
+def charger_commandes(filename):
     try:
-        with open('commandes.json', 'r') as file:
+        with open(filename, 'r') as file:
             commandes_json = json.load(file)
             commandes_par_calibre = {}
             for calibre, commandes in commandes_json.items():
@@ -85,7 +85,7 @@ calibres = {
 }
 
 commandes_par_calibre = {}
-commandes_par_calibre = charger_commandes()
+commandes_par_calibre = charger_commandes('commandes.json')
     
 @app.route('/')
 def accueil():
@@ -112,6 +112,12 @@ def maj_commandes():
 
         return redirect(url_for('maj_commandes'))
 
+    return render_template('maj_commandes.html', calibres=calibres, commandes_par_calibre=commandes_par_calibre)
+
+@app.route('/reset', methods=['GET', 'POST'])
+def reset():
+    commandes_par_calibre = charger_commandes('base.json')
+    print(commandes_par_calibre)
     return render_template('maj_commandes.html', calibres=calibres, commandes_par_calibre=commandes_par_calibre)
 
 @app.route('/ajouter-commande', methods=['GET', 'POST'])
