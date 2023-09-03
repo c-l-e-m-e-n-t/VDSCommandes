@@ -216,9 +216,11 @@ def modifier_commande(commande_id):
             if cmd.id == commande_id:
                 if request.method == 'POST':
                     cmd.nom = request.form['nom']
-                    cmd.calibre = calibres[request.form['calibre']]
                     cmd.nombre_palettes = int(request.form['nombre_palettes'])
-
+                    if int(request.form['nombre_colis']) > 0 :
+                        cmd.nombre_colis = "|| Colis : " + str(int(request.form['nombre_colis']))
+                    else :
+                        cmd.nombre_colis = ""
                     # Émettre la mise à jour des commandes à tous les clients via SocketIO
                     commandes_dict = {calibre: [cmd.to_dict() for cmd in commandes] for calibre, commandes in commandes_par_calibre.items()}
                     socketio.emit('mise_a_jour_commande', {'commandes': commandes_dict})

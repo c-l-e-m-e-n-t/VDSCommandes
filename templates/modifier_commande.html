@@ -24,10 +24,11 @@
     <form action="{{ url_for('modifier_commande', commande_id=commande.id) }}" method="POST">
         <label for="nom">Nom:</label>
         <input type="text" id="nom" name="nom" value="{{ commande.nom }}" required><br><br>
-        </select><br><br>
         <label for="nombre_palettes">Nombre de palettes:</label>
         <input type="number" id="nombre_palettes" name="nombre_palettes" value="{{ commande.nombre_palettes }}" required><br><br>
         <label for="nombre_colis">Nombre de colis:</label>
+        <input type="number" id="nombre_colis" name="nombre_colis" value="0"><br><br>
+        <button type="submit">Modifier</button>
     </form>
     <a href="{{ url_for('maj_commandes') }}">Retour à la liste des commandes</a>
     <footer>
