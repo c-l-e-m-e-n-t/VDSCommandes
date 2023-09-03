@@ -24,7 +24,7 @@ def get_completed_state(self):
 
 def charger_commandes(filename):
     try:
-        with open(filename, 'r') as file:
+        with open('saves/'+filename, 'r') as file:
             commandes_json = json.load(file)
             commandes_par_calibre = {}
             for calibre, commandes in commandes_json.items():
@@ -116,8 +116,15 @@ def maj_commandes():
 
 @app.route('/reset', methods=['GET', 'POST'])
 def reset():
-    commandes_par_calibre = charger_commandes('base.json')
-    print(commandes_par_calibre)
+    #remettre toutes les commande de bois a 0
+    for commande in commandes_par_calibre.values():
+        for cmd in commande:
+            if cmd.nom == "Bois" or cmd.nom == "bois" or cmd.nom == "BOIS":
+                cmd.nombre_palettes_realisees = 0
+                cmd.nombre_colis = ""
+    commandes_dict = {calibre: [cmd.to_dict() for cmd in commandes] for calibre, commandes in commandes_par_calibre.items()}
+    socketio.emit('mise_a_jour_commande', {'commandes': commandes_dict})
+    sauvegarder_commandes()
     return render_template('maj_commandes.html', calibres=calibres, commandes_par_calibre=commandes_par_calibre)
 
 @app.route('/ajouter-commande', methods=['GET', 'POST'])
