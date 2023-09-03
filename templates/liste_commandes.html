@@ -57,10 +57,11 @@
         const commandList = document.getElementById('command-list');
         commandList.innerHTML = ''; // Effacez le contenu actuel de la liste
 
-        // Obtenez une liste triée des calibres
+        const ordre = ['11', '12Q', '12L', '9', '15', '18'];
         const sortedCalibres = Object.keys(commandes).sort();
 
-        for (const calibre of sortedCalibres) {
+        for (i = 0; i < ordre.length; i++) {
+            const calibre = ordre[i];
             const calibreHeader = `<h2>Calibre: ${calibre}</h2>`;
             const commandItems = commandes[calibre].map(cmd => {
                 const statusClass = `status-dot ${cmd.status_class}`;

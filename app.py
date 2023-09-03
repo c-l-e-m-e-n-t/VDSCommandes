@@ -15,7 +15,7 @@ def generate_unique_id():
 def sauvegarder_commandes():
     #enregistrer dans un json
     commandes_json = {calibre: [cmd.to_dict() for cmd in commandes] for calibre, commandes in commandes_par_calibre.items()}
-    with open('commandes.json', 'w') as file:
+    with open('saves/commandes.json', 'w') as file:
         json.dump(commandes_json, file)
 
 def get_completed_state(self):
