@@ -65,7 +65,7 @@
             const calibreHeader = `<h2>Calibre: ${calibre}</h2>`;
             const commandItems = commandes[calibre].map(cmd => {
                 const statusClass = `status-dot ${cmd.status_class}`;
-                const colisText = cmd.nombre_colis !== 0 && cmd.nombre_colis !== "" ? `+ ${cmd.nombre_colis} colis` : '';
+                const colisText = cmd.nombre_colis !== 0 && cmd.nombre_colis !== "" ? `+ ${cmd.nombre_colis} ` : '';
                 return `
                     <li>
                         <span class="${statusClass}"></span>

@@ -2,12 +2,21 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_socketio import SocketIO
 import uuid
 import json
+import telebot
+
+BOT_TOKEN = '[TOKEN]'
+CHANNEL_ID = '[CHANNEL]'  # Remplacez par le nom ou l'identifiant de votre canal
 
 app = Flask(__name__)
 socketio = SocketIO(app)
+bot = telebot.TeleBot(BOT_TOKEN)
 
 checkbox_states = {}
 volume = 0
+
+# Fonction pour envoyer un message au canal
+def send_message_to_channel(message):
+    bot.send_message(CHANNEL_ID, message)
 
 def generate_unique_id():
     return str(uuid.uuid4())
@@ -162,7 +171,8 @@ def incrementer_palettes(commande_id):
             if cmd.id == commande_id:
                 cmd.nombre_palettes_realisees += 1
                 if cmd.nombre_palettes - cmd.nombre_palettes_realisees == 1:
-                    socketio.emit('volume_notification', {'volume': volume})
+                    socketio.emit('volume_notification', {'volume': volume})       
+                    send_message_to_channel("Dernière palette de " + str(cmd.calibre.nom))
                 break
 
     # Émettre la mise à jour des commandes à tous les clients via SocketIO
